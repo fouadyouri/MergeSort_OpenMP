@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 
-int itterations = 0;
+int operations = 0;
 
 void mergeSort(std::vector<double>&);
 void merge(std::vector<double>&, std::vector<double>&, std::vector<double>&);
@@ -20,7 +20,6 @@ int main() {
 	double minValue,
 		maxValue;
 
-
 	std::cout << "\n======================================" << std::endl;
 	std::cout << "Define the range of the values to generate \n" << std::endl;
 
@@ -35,7 +34,6 @@ int main() {
 
 	double elementToPush;
 
-#pragma omp parallel for
 	for (int i = 0; i < mainArray.size(); i++)
 		mainArray[i] = roundf(randomDouble(minValue, maxValue) * 100) / 100;
 
@@ -43,20 +41,16 @@ int main() {
 	std::cout << "The unsorted Array : " << std::endl;
 	printArray(mainArray);
 
-
 	mergeSort(mainArray);
-
 
 	std::cout << "\n======================================" << std::endl;
 	std::cout << "The sorted Array : " << std::endl;
 	printArray(mainArray);
 	
-
 	std::cout << "\n======================================" << std::endl;
 
-
 	std::cout << "\n======================================" << std::endl;
-	std::cout << "Number of itterations : " << itterations << std::endl;
+	std::cout << "Number of operations : " << operations << std::endl;
 
 	return 0;
 }
@@ -73,13 +67,13 @@ void merge(std::vector<double>& mainArray, std::vector<double>& rightArray, std:
 		{
 			mainArray[mainIndex] = leftArray[leftIndex];
 			leftIndex++;
-			itterations++;
+			operations++;
 		}
 		else
 		{
 			mainArray[mainIndex] = rightArray[rightIndex];
 			rightIndex++;
-			itterations++;
+			operations++;
 		}
 		mainIndex++;
 	}
@@ -89,7 +83,7 @@ void merge(std::vector<double>& mainArray, std::vector<double>& rightArray, std:
 		mainArray[mainIndex] = leftArray[leftIndex];
 		mainIndex++;
 		leftIndex++;
-		itterations++;
+		operations++;
 	}
 
 	while (rightIndex < rightArray.size())
@@ -97,7 +91,7 @@ void merge(std::vector<double>& mainArray, std::vector<double>& rightArray, std:
 		mainArray[mainIndex] = rightArray[rightIndex];
 		mainIndex++;
 		rightIndex++;
-		itterations++;
+		operations++;
 	}
 }
 
@@ -105,7 +99,6 @@ void mergeSort(std::vector<double>& mainArray)
 {
 	if (mainArray.size() < 2)
 		return;
-
 	else
 	{
 		int middle = mainArray.size() / 2;
@@ -121,24 +114,21 @@ void mergeSort(std::vector<double>& mainArray)
 		for (int i = middle; i < mainArray.size(); i++)
 			rightArray[i - middle] = mainArray[i];
 
-#pragma omp parallel 
+#pragma omp task 
 		mergeSort(leftArray);
 
-#pragma omp parallel
+#pragma omp task
 		mergeSort(rightArray);
 
-#pragma omp parallel
+#pragma omp task
 		merge(mainArray, rightArray, leftArray);
 	}
-
 }
 
 double randomDouble(double minValue, double maxValue)
 {
 	double random = ((double)rand() / (double)RAND_MAX);
-
 	double difference = maxValue - minValue;
-
 	double finalRandom = random * difference;
 
 	return (double) (minValue + finalRandom);
