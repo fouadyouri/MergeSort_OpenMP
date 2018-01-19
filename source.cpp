@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <omp.h>
+#include <sys/time.h>
+
 int operations = 0;
 
 void mergeSort(std::vector<double>&);
@@ -12,6 +14,9 @@ double randomDouble(double, double);
 void printArray(std::vector<double>);
 
 int main() {
+	
+	//omp_set_num_threads(1);
+	
 	std::cout << "==================== Merge Sort Algorithm ==================" << std::endl;
 
 	int sizeOfArray;
@@ -36,30 +41,36 @@ int main() {
 	std::cout << "\n======================================" << std::endl;
 	std::cout << "The Array will be filled by data between " << minValue << " and " << maxValue << " !" << std::endl;
 
-	double elementToPush;
+	//double elementToPush;
 
 	for (int i = 0; i < (int)mainArray.size(); i++)
 		mainArray[i] = (double)roundf(randomDouble(minValue, maxValue) * 100) / 100;
-
+/*
 	std::cout << "\n======================================" << std::endl;
 	std::cout << "The unsorted Array : " << std::endl;
 	printArray(mainArray);
-
-	clock_t t1, t2;
-	t1 = clock();
-
+*/
+//	clock_t startTime, finishTime;
+//	startTime = clock();
+struct timeval start, end;
+gettimeofday(&start, NULL);
+	
 	mergeSort(mainArray);
 
-	t2 = clock();
-	float diff = (float)t2 - (float)t1;
-	float seconds = diff / CLOCKS_PER_SEC;
+	gettimeofday(&end, NULL);
 
+	float seconds = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
+
+//	finishTime = clock();
+//	float diff = (float)finishTime - (float)startTime;
+//	float seconds = diff / CLOCKS_PER_SEC;
+/*
 	std::cout << "\n======================================" << std::endl;
 	std::cout << "The sorted Array : " << std::endl;
 	printArray(mainArray);
 
 	std::cout << "\n======================================" << std::endl;
-
+*/
 	std::cout << "\n======================================" << std::endl;
 	std::cout << operations << " operations were made in " << seconds << " seconds" << std::endl;
 
@@ -118,25 +129,26 @@ void mergeSort(std::vector<double>& mainArray)
 		std::vector<double> leftArray(middle);
 		std::vector<double> rightArray(mainArray.size() - middle);
 
-#pragma omp parallel for
+//#pragma omp parallel for
 		for (int i = 0; i < middle; i++)
 			leftArray[i] = mainArray[i];
 
-#pragma omp parallel for
+//#pragma omp parallel for
 		for (int i = middle; i < (int)mainArray.size(); i++)
 			rightArray[i - middle] = mainArray[i];
 
-#pragma omp parallel
+#pragma omp parallel 
 {
 #pragma omp single
+
 {
 #pragma omp task 
 			mergeSort(leftArray);
 
 #pragma omp task
 			mergeSort(rightArray);
-
-#pragma omp task
+#pragma omp taskwait
+//#pragma omp task
 			merge(mainArray, rightArray, leftArray);
 }
 }
